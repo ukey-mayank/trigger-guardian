@@ -1,0 +1,13 @@
+{
+  "orgName": "Trigger Guardian Dev",
+  "edition": "Enterprise",
+  "features": ["RecordTypes"],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "apexSettings": {
+      "enableCompileOnDeploy": true
+    }
+  }
+}
