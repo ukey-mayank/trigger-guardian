@@ -1,18 +1,100 @@
-# Salesforce DX Project: Next Steps
+# 🚨 Trigger Guardian
 
-Now that you’ve created a Salesforce DX project, what’s next? Here are some documentation resources to get you started.
+Trigger Guardian is a Salesforce-native application designed to help developers and admins orchestrate, manage, and monitor Apex Triggers in any Salesforce org. It enables trigger framework enforcement, conflict detection, and run-time toggle control — all in a low-code/no-code manner.
 
-## How Do You Plan to Deploy Your Changes?
+---
 
-Do you want to deploy a set of changes, or create a self-contained application? Choose a [development model](https://developer.salesforce.com/tools/vscode/en/user-guide/development-models).
+## 🔧 Features
 
-## Configure Your Salesforce DX Project
+- ✅ Centralized trigger orchestration engine
+- ✅ Custom Metadata-based trigger control (Enable/Disable triggers without deployment)
+- ✅ Trigger conflict and recursion prevention
+- ✅ Logging of trigger execution per object and event
+- ✅ Lightning Dashboard (LWC) for monitoring and management
+- ✅ Compatible with Unlocked Package deployment
 
-The `sfdx-project.json` file contains useful configuration information for your project. See [Salesforce DX Project Configuration](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_ws_config.htm) in the _Salesforce DX Developer Guide_ for details about this file.
+---
 
-## Read All About It
+## 🏗 Tech Stack
 
-- [Salesforce Extensions Documentation](https://developer.salesforce.com/tools/vscode/)
-- [Salesforce CLI Setup Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_setup.meta/sfdx_setup/sfdx_setup_intro.htm)
-- [Salesforce DX Developer Guide](https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_intro.htm)
-- [Salesforce CLI Command Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference.htm)
+- Salesforce Apex
+- Lightning Web Components (LWC)
+- Custom Metadata Types
+- Unlocked Packages
+- Salesforce DX
+- Git + GitHub
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+
+- Salesforce CLI (`sf` or `sfdx`)
+- Git installed
+- Dev Hub enabled in your Salesforce org
+- Authorized Dev Hub
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/trigger-guardian.git
+cd trigger-guardian
+
+### 2. Create a Scratch Org
+
+- sf org create scratch --definition-file config/project-scratch-def.json --alias TriggerGuardianScratch --set-default
+
+### 4. Push Source to Scratch Org
+
+- sf project deploy start --target-org TriggerGuardianScratch
+
+### 5. Assign Permissions & Open Org
+
+- sf org assign permset --name Trigger_Guardian_Admin --target-org TriggerGuardianScratch
+- sf org open --target-org TriggerGuardianScratch
+
+## 📦 Packaging Commands
+
+# Create Package (once)
+sf package create --name "Trigger Guardian" --package-type unlocked --path force-app --description "Trigger orchestration and monitoring app"
+
+# Create Version
+- sf package version create --package Trigger_Guardian --wait 10 --installation-key-bypass --target-dev-hub devhub
+
+## 📂 Project Structure
+force-app/
+├── main/
+│   └── default/
+│       ├── apex/
+│       ├── lwc/
+│       ├── customMetadata/
+│       ├── objects/
+│       └── permissionsets/
+config/
+├── project-scratch-def.json
+
+
+## 📈 Roadmap
+ Trigger metadata configuration
+
+ Trigger execution logger
+
+ UI-based control panel for enabling/disabling triggers
+
+ Integration with Error Logging App
+
+ Publish to AppExchange
+
+## 🤝 Contribution
+We welcome feedback, bug reports, and feature suggestions! Please open an issue or submit a pull request.
+
+## 🔒 License
+MIT License. See LICENSE for details.
+
+## 👨‍💻 Author
+Mayank Ukey
+Salesforce Certified Developer | LWC, Apex, AppExchange
+📫 LinkedIn | 🌐 Your Portfolio
+
+
