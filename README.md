@@ -17,11 +17,11 @@ Trigger Guardian is a Salesforce-native application designed to help developers 
 
 ## 🏗 Tech Stack
 
-- Salesforce Apex
-- Lightning Web Components (LWC)
-- Custom Metadata Types
-- Unlocked Packages
-- Salesforce DX
+- Salesforce Apex  
+- Lightning Web Components (LWC)  
+- Custom Metadata Types  
+- Unlocked Packages  
+- Salesforce DX  
 - Git + GitHub
 
 ---
@@ -40,29 +40,44 @@ Trigger Guardian is a Salesforce-native application designed to help developers 
 ```bash
 git clone https://github.com/your-username/trigger-guardian.git
 cd trigger-guardian
+```
 
-### 2. Create a Scratch Org
+### 3. Create a Scratch Org
 
-- sf org create scratch --definition-file config/project-scratch-def.json --alias TriggerGuardianScratch --set-default
+```bash
+sf org create scratch --definition-file config/project-scratch-def.json --alias TriggerGuardianScratch --set-default --duration-days 7
+```
 
 ### 4. Push Source to Scratch Org
 
-- sf project deploy start --target-org TriggerGuardianScratch
+```bash
+sf project deploy start --target-org TriggerGuardianScratch
+```
 
 ### 5. Assign Permissions & Open Org
 
-- sf org assign permset --name Trigger_Guardian_Admin --target-org TriggerGuardianScratch
-- sf org open --target-org TriggerGuardianScratch
+```bash
+sf org assign permset --name Trigger_Guardian_Admin --target-org TriggerGuardianScratch
+sf org open --target-org TriggerGuardianScratch
+```
+
+---
 
 ## 📦 Packaging Commands
 
+```bash
 # Create Package (once)
 sf package create --name "Trigger Guardian" --package-type unlocked --path force-app --description "Trigger orchestration and monitoring app"
 
 # Create Version
-- sf package version create --package Trigger_Guardian --wait 10 --installation-key-bypass --target-dev-hub devhub
+sf package version create --package Trigger_Guardian --wait 10 --installation-key-bypass --target-dev-hub devhub
+```
+
+---
 
 ## 📂 Project Structure
+
+```
 force-app/
 ├── main/
 │   └── default/
@@ -73,28 +88,34 @@ force-app/
 │       └── permissionsets/
 config/
 ├── project-scratch-def.json
+```
 
+---
 
 ## 📈 Roadmap
- Trigger metadata configuration
 
- Trigger execution logger
+- ✅ Trigger metadata configuration  
+- ✅ Trigger execution logger  
+- 🔲 UI-based control panel for enabling/disabling triggers  
+- 🔲 Integration with Error Logging App  
+- 🔲 Publish to AppExchange  
 
- UI-based control panel for enabling/disabling triggers
-
- Integration with Error Logging App
-
- Publish to AppExchange
+---
 
 ## 🤝 Contribution
+
 We welcome feedback, bug reports, and feature suggestions! Please open an issue or submit a pull request.
 
+---
+
 ## 🔒 License
-MIT License. See LICENSE for details.
+
+MIT License. See [LICENSE](LICENSE) for details.
+
+---
 
 ## 👨‍💻 Author
-Mayank Ukey
-Salesforce Certified Developer | LWC, Apex, AppExchange
-📫 LinkedIn | 🌐 Your Portfolio
 
-
+**Mayank Ukey**  
+Salesforce Certified Developer | LWC, Apex, AppExchange  
+📫 [LinkedIn](https://linkedin.com) | 🌐 [Your Portfolio](https://yourwebsite.com)
