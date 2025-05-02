@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Contact Trigger Config</label>
+    <protected>false</protected>
+    <fullName>Trigger_Config.Contact_Trigger_Config</fullName>
+    <values>
+        <field>Is_Enabled__c</field>
+        <value>true</value>
+    </values>
+    <values>
+        <field>Object_Name__c</field>
+        <value>Contact</value>
+    </values>
+</CustomMetadata>
