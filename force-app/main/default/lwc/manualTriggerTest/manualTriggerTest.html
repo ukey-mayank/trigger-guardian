@@ -1,0 +1,30 @@
+<template>
+  <lightning-card title="Manual Trigger Test">
+    <div class="slds-p-around_medium">
+      <lightning-combobox
+        label="Select Object"
+        value={selectedObject}
+        options={objectOptions}
+        onchange={handleObjectChange}>
+      </lightning-combobox>
+
+      <lightning-button 
+        class="slds-m-top_medium"
+        label="Run Trigger Test" 
+        variant="brand"
+        onclick={handleRunTest}
+        disabled={isButtonDisabled}>
+      </lightning-button>
+
+      <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Running test..." size="small"></lightning-spinner>
+      </template>
+
+      <template if:true={result}>
+        <div class="slds-m-top_medium">
+          <lightning-formatted-text value={result}></lightning-formatted-text>
+        </div>
+      </template>
+    </div>
+  </lightning-card>
+</template>

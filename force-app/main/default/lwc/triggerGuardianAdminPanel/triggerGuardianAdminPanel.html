@@ -1,0 +1,33 @@
+<template>
+    <lightning-card title="Trigger Guardian Admin Panel" icon-name="utility:settings">
+        <div class="slds-tabs_default slds-p-around_medium">
+            <!-- Tab navigation with accessible aria-labels for screen readers -->
+            <lightning-button-group>
+                <lightning-button label="Logs" data-tab="logs" onclick={handleTabChange} aria-label="View Trigger Execution Logs"></lightning-button>
+                <lightning-button label="Settings" data-tab="settings" onclick={handleTabChange} aria-label="Manage Trigger Settings"></lightning-button>
+                <lightning-button label="Errors" data-tab="errors" onclick={handleTabChange} aria-label="View Trigger Errors"></lightning-button>
+                <lightning-button label="Trigger Order" data-tab="order" onclick={handleTabChange} aria-label="Manage Trigger Order"></lightning-button>
+                <lightning-button label="Manual Test" data-tab="test" onclick={handleTabChange} aria-label="Run Manual Trigger Test"></lightning-button>
+            </lightning-button-group>
+  
+            <div class="slds-m-top_medium">
+                <!-- Conditional rendering of tab content -->
+                <template if:true={isLogs}>
+                    <c-trigger-guardian-execution-log></c-trigger-guardian-execution-log>
+                </template>
+                <template if:true={isSettings}>
+                    <c-trigger-guardian-settings-toggle></c-trigger-guardian-settings-toggle>
+                </template>
+                <template if:true={isErrorPanel}>
+                    <c-trigger-guardian-error-panel></c-trigger-guardian-error-panel>
+                </template>
+                <template if:true={isOrderManager}>
+                    <c-trigger-guardian-execution-order-manager></c-trigger-guardian-execution-order-manager>
+                </template>
+                <template if:true={isManualTest}>
+                    <c-manual-trigger-test></c-manual-trigger-test>
+                </template>
+            </div>
+        </div>
+    </lightning-card>
+</template>  

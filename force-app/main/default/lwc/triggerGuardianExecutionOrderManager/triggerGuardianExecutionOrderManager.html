@@ -1,0 +1,55 @@
+<template>
+    <lightning-card title="Trigger Execution Order Manager">
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+        </template>
+
+        <template if:true={triggerOrders.length}>
+            <div class="draggable-list">
+                <template for:each={triggerOrders} for:item="order" for:index="index">
+                    <div key={order.Id}
+                        class="draggable-item"
+                        draggable="true"
+                        data-id={order.Id}
+                        ondragstart={handleDragStart}
+                        ondragover={handleDragOver}
+                        ondrop={handleDrop}
+                        ondragend={handleDragEnd}>
+
+                        <p><strong>{order.Object_Name__c}</strong></p>
+                        <lightning-input
+                            type="number"
+                            label="Trigger Order"
+                            value={order.updatedOrder}
+                            data-id={order.Id}
+                            onchange={handleOrderChange}>
+                        </lightning-input>
+                    </div>
+                </template>
+            </div>
+
+            <div class="slds-m-top_medium">
+                <lightning-button
+                    variant="brand"
+                    label="Save Changes"
+                    onclick={handleSave}
+                    disabled={isSaving}>
+                </lightning-button>
+                <lightning-button
+                    variant="neutral"
+                    label="Reset to Original Order"
+                    onclick={handleReset}
+                    class="slds-m-left_small">
+                </lightning-button>
+            </div>
+        </template>
+
+        <template if:true={showNoData}>
+            <div class="slds-text-color_weak slds-m-around_medium">No trigger orders found.</div>
+        </template>
+
+        <template if:true={errorMessage}>
+            <div class="slds-text-color_error slds-m-around_medium">{errorMessage}</div>
+        </template>
+    </lightning-card>
+</template>

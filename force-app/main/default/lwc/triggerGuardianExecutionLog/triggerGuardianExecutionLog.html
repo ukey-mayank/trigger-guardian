@@ -1,0 +1,31 @@
+<template>
+    <lightning-input label="Search Logs" value={searchTerm} onchange={handleSearch} placeholder="Search logs..."></lightning-input>
+
+    <!-- Loading Spinner -->
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+    </template>
+
+    <!-- Logs Display -->
+    <template if:true={logs.length}>
+        <template for:each={logs} for:item="log">
+            <div key={log.Id} class="slds-box slds-m-around_small">
+                <p><strong>Object:</strong> {log.Object_Name__c}</p>
+                <p><strong>Status:</strong> {log.Status__c}</p>
+                <p><strong>Error:</strong> {log.Error_Message__c}</p>
+            </div>
+        </template>
+        <!-- Load More Button -->
+        <lightning-button label="Load More" onclick={loadMoreLogs} class="slds-m-top_medium" variant="brand"></lightning-button>
+    </template>
+
+    <!-- Empty State Message -->
+    <template if:true={noLogsFound}>
+        <div class="slds-text-color_weak">No logs found</div>
+    </template>
+
+    <!-- Error State -->
+    <template if:true={errorMessage}>
+        <div class="slds-text-color_error">{errorMessage}</div>
+    </template>
+</template>

@@ -1,0 +1,13 @@
+.drag-list {
+    list-style: none;
+    padding: 0;
+}
+.draggable {
+    cursor: move;
+    background-color: #f4f6f9;
+    border: 1px dashed #d8dde6;
+    transition: background-color 0.2s;
+}
+.draggable:hover {
+    background-color: #e0e5ec;
+}

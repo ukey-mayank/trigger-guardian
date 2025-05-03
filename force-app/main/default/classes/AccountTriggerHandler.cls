@@ -22,4 +22,7 @@ public with sharing class AccountTriggerHandler extends TG_AbstractTriggerHandle
     public override void afterDelete(List<SObject> oldList) {
         // Implement logic for after delete on Account
     }
+    public override void afterUndelete(List<SObject> newList) {
+        // Implement logic for after undelete on Account
+    }
 }
