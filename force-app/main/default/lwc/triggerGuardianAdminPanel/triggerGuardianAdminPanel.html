@@ -1,33 +1,23 @@
 <template>
     <lightning-card title="Trigger Guardian Admin Panel" icon-name="utility:settings">
-        <div class="slds-tabs_default slds-p-around_medium">
-            <!-- Tab navigation with accessible aria-labels for screen readers -->
-            <lightning-button-group>
-                <lightning-button label="Logs" data-tab="logs" onclick={handleTabChange} aria-label="View Trigger Execution Logs"></lightning-button>
-                <lightning-button label="Settings" data-tab="settings" onclick={handleTabChange} aria-label="Manage Trigger Settings"></lightning-button>
-                <lightning-button label="Errors" data-tab="errors" onclick={handleTabChange} aria-label="View Trigger Errors"></lightning-button>
-                <lightning-button label="Trigger Order" data-tab="order" onclick={handleTabChange} aria-label="Manage Trigger Order"></lightning-button>
-                <lightning-button label="Manual Test" data-tab="test" onclick={handleTabChange} aria-label="Run Manual Trigger Test"></lightning-button>
-            </lightning-button-group>
-  
-            <div class="slds-m-top_medium">
-                <!-- Conditional rendering of tab content -->
-                <template if:true={isLogs}>
+        <div class="slds-p-around_medium">
+            <lightning-tabset active-tab-value={activeTabValue} onactive={handleTabChange}>
+                <lightning-tab label="Logs" value="logs" title="View Trigger Execution Logs">
                     <c-trigger-guardian-execution-log></c-trigger-guardian-execution-log>
-                </template>
-                <template if:true={isSettings}>
-                    <c-trigger-guardian-settings-toggle></c-trigger-guardian-settings-toggle>
-                </template>
-                <template if:true={isErrorPanel}>
+                </lightning-tab>
+
+                <lightning-tab label="Errors" value="errors" title="View Trigger Errors">
                     <c-trigger-guardian-error-panel></c-trigger-guardian-error-panel>
-                </template>
-                <template if:true={isOrderManager}>
-                    <c-trigger-guardian-execution-order-manager></c-trigger-guardian-execution-order-manager>
-                </template>
-                <template if:true={isManualTest}>
+                </lightning-tab>
+
+                <lightning-tab label="Toggle & Execution" value="settings" title="Manage Settings">
+                    <c-trigger-guardian-manager></c-trigger-guardian-manager>
+                </lightning-tab>
+
+                <lightning-tab label="Manual Test" value="test" title="Run Manual Trigger Test">
                     <c-manual-trigger-test></c-manual-trigger-test>
-                </template>
-            </div>
+                </lightning-tab>
+            </lightning-tabset>
         </div>
     </lightning-card>
-</template>  
+</template>

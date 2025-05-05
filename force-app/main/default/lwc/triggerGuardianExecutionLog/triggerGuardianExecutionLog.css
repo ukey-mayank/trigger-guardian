@@ -1,0 +1,31 @@
+/* Container holding the search input and spinner */
+.search-container {
+    position: relative;
+    width: 100%;
+    padding-right: 1rem;
+}
+
+/* Wrapper that controls the width and alignment */
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 300px; /* Max width to prevent it from stretching too far */
+    margin-bottom: 1rem;
+}
+
+/* Makes lightning-input inside search-wrapper responsive */
+.search-wrapper lightning-input {
+    flex-grow: 1;
+    width: 100%;
+    min-width: 200px;
+}
+
+/* Spinner positioning */
+.search-spinner {
+    position: absolute;
+    right: 0.75rem;
+    top: 2.2rem; /* Adjust based on label height */
+    z-index: 2;
+}

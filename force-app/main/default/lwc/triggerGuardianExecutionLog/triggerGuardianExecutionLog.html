@@ -1,5 +1,61 @@
 <template>
-    <lightning-input label="Search Logs" value={searchTerm} onchange={handleSearch} placeholder="Search logs..."></lightning-input>
+    <div class="search-container slds-p-bottom_small">
+        <div class="slds-grid slds-wrap slds-gutters">
+            
+            <!-- Search Input -->
+            <div class="slds-col slds-size_1-of-5">
+                <lightning-input
+                    type="search"
+                    label="Search Logs"
+                    placeholder="Search by keyword"
+                    value={searchTerm}
+                    onchange={handleInputChange}
+                    onkeydown={handleSearchKeydown}>
+                </lightning-input>
+            </div>
+    
+            <!-- Start Date -->
+            <div class="slds-col slds-size_1-of-6">
+                <lightning-input
+                    type="date"
+                    label="Start Date"
+                    value={startDate}
+                    onchange={handleDateChange}
+                    data-id="startDate">
+                </lightning-input>
+            </div>
+    
+            <!-- End Date -->
+            <div class="slds-col slds-size_1-of-6">
+                <lightning-input
+                    type="date"
+                    label="End Date"
+                    value={endDate}
+                    onchange={handleDateChange}
+                    data-id="endDate">
+                </lightning-input>
+            </div>
+    
+            <!-- Status Dropdown -->
+            <div class="slds-col slds-size_1-of-6">
+                <lightning-combobox
+                    label="Execution Status"
+                    value={statusFilter}
+                    options={statusOptions}
+                    onchange={handleStatusChange}>
+                </lightning-combobox>
+            </div>
+    
+            <!-- Apply Filters Button -->
+            <div class="slds-col slds-size_1-of-6 slds-align-bottom">
+                    <lightning-button
+                        label="Apply Filters"
+                        variant="brand"
+                        onclick={applyFilters}>
+                    </lightning-button>
+            </div>
+        </div>
+    </div>    
 
     <!-- Loading Spinner -->
     <template if:true={isLoading}>
@@ -8,15 +64,20 @@
 
     <!-- Logs Display -->
     <template if:true={logs.length}>
-        <template for:each={logs} for:item="log">
-            <div key={log.Id} class="slds-box slds-m-around_small">
-                <p><strong>Object:</strong> {log.Object_Name__c}</p>
-                <p><strong>Status:</strong> {log.Status__c}</p>
-                <p><strong>Error:</strong> {log.Error_Message__c}</p>
-            </div>
-        </template>
+        <lightning-datatable
+            key-field="Id"
+            data={logs}
+            columns={columns}
+            onrowaction={handleRowAction}
+            hide-checkbox-column
+            show-row-number-column>
+        </lightning-datatable>
+
         <!-- Load More Button -->
-        <lightning-button label="Load More" onclick={loadMoreLogs} class="slds-m-top_medium" variant="brand"></lightning-button>
+        <div class="slds-m-top_medium">
+            <lightning-button label="Load More" onclick={loadMoreLogs} variant="brand">
+            </lightning-button>
+        </div>
     </template>
 
     <!-- Empty State Message -->
