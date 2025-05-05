@@ -101,36 +101,38 @@ public with sharing class TG_AdminController {
     }
 
     @AuraEnabled(cacheable=true)
-    public static List<Trigger_Execution_Log__c> getLogs(LogFilter filter) {
-        List<Trigger_Execution_Log__c> results = new List<Trigger_Execution_Log__c>();
+    public static Map<String, Object> getLogsWithErrorFilter(String searchTerm, String startDate, String endDate, String statusFilter, Integer pageSize, Integer pageNumber) {
+        List<Trigger_Execution_Log__c> logs = new List<Trigger_Execution_Log__c>();
+        Integer offset = (pageNumber - 1) * pageSize;
 
         Date startDateObj;
         Date endDateObj;
 
         // Ensure start date and end date are valid
-        if (String.isNotBlank(filter.startDate)) {
+        if (String.isNotBlank(startDate)) {
             try {
-                startDateObj = Date.valueOf(filter.startDate); // Converts 'YYYY-MM-DD' string to Date
+                startDateObj = Date.valueOf(startDate); // Converts 'YYYY-MM-DD' string to Date
             } catch (Exception e) {
-                System.debug(LoggingLevel.ERROR, 'Invalid start date format: ' + filter.startDate);
+                System.debug(LoggingLevel.ERROR, 'Invalid start date format: ' + startDate);
                 throw new AuraHandledException('Invalid start date format.');
             }
         }
 
-        if (String.isNotBlank(filter.endDate)) {
+        if (String.isNotBlank(endDate)) {
             try {
-                endDateObj = Date.valueOf(filter.endDate); // Converts 'YYYY-MM-DD' string to Date
+                endDateObj = Date.valueOf(endDate); // Converts 'YYYY-MM-DD' string to Date
             } catch (Exception e) {
-                System.debug(LoggingLevel.ERROR, 'Invalid end date format: ' + filter.endDate);
+                System.debug(LoggingLevel.ERROR, 'Invalid end date format: ' + endDate);
                 throw new AuraHandledException('Invalid end date format.');
             }
         }
 
-        String query = 'SELECT Id, Object_Name__c, Error_Message__c, Execution_Status__c, CreatedDate FROM Trigger_Execution_Log__c WHERE Name != null';
-        
+        String query = 'SELECT Id, Object_Name__c, Error_Message__c, Execution_Status__c, CreatedDate ' +
+                       'FROM Trigger_Execution_Log__c WHERE Name != null';
+
         // Apply the search key filter if provided
-        if (String.isNotBlank(filter.searchKey)) {
-            query += ' AND Name LIKE \'%' + String.escapeSingleQuotes(filter.searchKey) + '%\'';
+        if (String.isNotBlank(searchTerm)) {
+            query += ' AND Name LIKE \'%' + String.escapeSingleQuotes(searchTerm) + '%\'';
         }
 
         // Apply the start date filter if provided
@@ -144,9 +146,9 @@ public with sharing class TG_AdminController {
         }
 
         // Apply the execution status filter if provided
-        if (String.isNotBlank(filter.executionStatus)) {
-            String statusFilter = filter.executionStatus.toLowerCase();
-            query += ' AND LOWER(Execution_Status__c) = :statusFilter';
+        if (String.isNotBlank(statusFilter)) {
+            String statusFilterLower = statusFilter.toLowerCase();
+            query += ' AND LOWER(Execution_Status__c) = :statusFilterLower';
         }
 
         // Debug the query for further inspection
@@ -154,19 +156,24 @@ public with sharing class TG_AdminController {
 
         // Execute the query
         try {
-            results = Database.query(query);
+            logs = Database.query(query);
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR, 'Error executing query: ' + e.getMessage());
             throw new AuraHandledException('Error fetching logs: ' + e.getMessage());
         }
 
-        // Return results
-        return results;
+        // Count total records for pagination
+        Integer totalRecords = [SELECT COUNT() FROM Trigger_Execution_Log__c WHERE Name != null];
+
+        // Return results and total records for pagination
+        return new Map<String, Object>{
+            'logs' => logs,
+            'totalRecords' => totalRecords
+        };
     }
 
     public class LogFilter {
         @AuraEnabled public String searchKey;
-        @AuraEnabled public Integer pageNumber;
         @AuraEnabled public String startDate;
         @AuraEnabled public String endDate;
         @AuraEnabled public String executionStatus;

@@ -1,210 +1,128 @@
 import { LightningElement, track } from 'lwc';
-import { NavigationMixin } from 'lightning/navigation';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import getLogs from '@salesforce/apex/TG_AdminController.getLogs';
-import deleteLogRecord from '@salesforce/apex/TG_AdminController.deleteLogRecord';
+import getLogsWithErrorFilter from '@salesforce/apex/TG_AdminController.getLogsWithErrorFilter';
+import getErrorLogs from '@salesforce/apex/TG_AdminController.getErrorLogs';
 
-export default class TriggerGuardianExecutionLog extends NavigationMixin(LightningElement) {
+export default class TriggerGuardianLogsPanel extends LightningElement {
     @track logs = [];
-    @track searchTerm = '';
+    @track errors = [];
     @track isLoading = false;
     @track errorMessage = '';
-    @track hasMoreData = true;
-    @track nextPage = 0;
-
+    @track searchTerm = '';
     @track startDate = '';
     @track endDate = '';
     @track statusFilter = '';
+    @track noLogsFound = false;
+    @track showNoErrors = false;
 
-    columns = [
-        { label: 'Object Name', fieldName: 'Object_Name__c' },
-        { label: 'Status', fieldName: 'Execution_Status__c' },
-        { label: 'Error Message', fieldName: 'Error_Message__c' },
-        { label: 'Created Date', fieldName: 'CreatedDate', type: 'date' },
-        {
-            type: 'action',
-            typeAttributes: {
-                rowActions: [
-                    { label: 'View Record', name: 'view' },
-                    { label: 'Delete Log', name: 'delete' }
-                ]
-            }
-        }
-    ];
+    // Pagination for Execution Logs
+    @track pageSize = 10;
+    @track currentPage = 1;
+    @track totalRecords = 0;
 
-    statusOptions = [
-        { label: 'All', value: '' },
-        { label: 'Success', value: 'Success' },
-        { label: 'Failure', value: 'Failure' },
-        { label: 'Skipped', value: 'Skipped' }
-    ];
-
-    connectedCallback() {
-        this.fetchLogs();
+    // Columns for Lightning Datatable
+    get columns() {
+        return [
+            { label: 'Log ID', fieldName: 'Id' },
+            { label: 'Object Name', fieldName: 'Object_Name__c' },
+            { label: 'Execution Status', fieldName: 'Execution_Status__c' },
+            { label: 'Error Message', fieldName: 'Error_Message__c' },
+            { label: 'Timestamp', fieldName: 'CreatedDate' }
+        ];
     }
 
+    // Options for Execution Status Filter
+    get statusOptions() {
+        return [
+            { label: 'All', value: '' },
+            { label: 'Success', value: 'Success' },
+            { label: 'Failure', value: 'Failure' }
+        ];
+    }
+
+    // Lifecycle Hook - On Load, fetch logs
+    connectedCallback() {
+        this.loadExecutionLogs();
+        this.loadErrorLogs();
+    }
+
+    // Handle Changes for Filters
     handleInputChange(event) {
         this.searchTerm = event.target.value;
     }
 
-    handleSearchKeydown(event) {
-        if (event.key === 'Enter') {
-            this.resetAndFetch();
-        }
-    }
-
     handleDateChange(event) {
-        const field = event.target.dataset.id;
-        if (field === 'startDate') {
+        const fieldName = event.target.dataset.id;
+        if (fieldName === 'startDate') {
             this.startDate = event.target.value;
-        } else if (field === 'endDate') {
+        } else if (fieldName === 'endDate') {
             this.endDate = event.target.value;
         }
     }
 
     handleStatusChange(event) {
-        this.statusFilter = event.detail.value;
-        console.log('Execution Status selected:', this.statusFilter);
+        this.statusFilter = event.target.value;
     }
 
+    // Apply Filters to Execution Logs
     applyFilters() {
-        this.resetAndFetch();
+        this.currentPage = 1;
+        this.loadExecutionLogs();
     }
 
-    resetAndFetch() {
-        this.logs = [];
-        this.nextPage = 0;
-        this.hasMoreData = true;
-        this.fetchLogs();
-    }
-
-    fetchLogs() {
+    // Fetch Execution Logs with Filters and Pagination
+    async loadExecutionLogs() {
         this.isLoading = true;
-    
-        // Format start and end dates if they exist
-        let formattedStart = this.startDate ? this.formatDate(this.startDate) : null;
-        let formattedEnd = this.endDate ? this.formatDate(this.endDate) : null;
-    
-        // Log formatted dates for debugging
-        console.log('Formatted Start Date:', formattedStart);
-        console.log('Formatted End Date:', formattedEnd);
-    
-        // Validate formatted date strings
-        if (formattedStart && !this.isValidDateFormat(formattedStart)) {
-            this.errorMessage = 'Invalid start date format';
-            this.isLoading = false;
-            return;
-        }
-    
-        if (formattedEnd && !this.isValidDateFormat(formattedEnd)) {
-            this.errorMessage = 'Invalid end date format';
-            this.isLoading = false;
-            return;
-        }
-    
-        // Construct filter object to match Apex LogFilter class
-        const filter = {
-            searchKey: this.searchTerm,
-            pageNumber: this.nextPage,
-            startDate: formattedStart,
-            endDate: formattedEnd,
-            executionStatus: this.statusFilter
-        };
-    
-        console.log('Final filter sent to Apex:', JSON.stringify(filter));
-        // Call Apex method with a single 'filter' object
-        getLogs({ filter })
-            .then((data) => {
-                if (this.nextPage === 0) {
-                    this.logs = data;
-                } else {
-                    this.logs = [...this.logs, ...data];
-                }
-    
-                this.hasMoreData = data.length === 50;
-                this.isLoading = false;
-            })
-            .catch((error) => {
-                this.errorMessage = 'Error fetching logs: ' + (error.body?.message || error.message);
-                this.isLoading = false;
-            });
-    }    
-    
-    // Helper method to check if the date format is valid (YYYY-MM-DD)
-    isValidDateFormat(dateStr) {
-        const datePattern = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD format
-        return datePattern.test(dateStr);
-    }    
-
-    formatDate(dateStr) {
+        this.errorMessage = '';
+        this.noLogsFound = false;
         try {
-            // Check if the input is a valid date string
-            const dateObj = new Date(dateStr);
-    
-            // Check if the dateObj is valid
-            if (isNaN(dateObj.getTime())) {
-                return null; // Return null if the date is invalid
-            }
-    
-            // Return the date in 'YYYY-MM-DD' format
-            return dateObj.toISOString().split('T')[0];
-        } catch (e) {
-            return null; // Return null if there is any other error
-        }
-    }    
-
-    loadMoreLogs() {
-        if (this.isLoading || !this.hasMoreData) {
-            this.dispatchEvent(
-                new ShowToastEvent({
-                    title: 'No More Logs',
-                    message: 'There are no additional logs to load.',
-                    variant: 'info',
-                    mode: 'dismissable'
-                })
-            );
-            return;
-        }
-
-        this.nextPage++;
-        this.fetchLogs();
-    }
-
-    deleteLog(recordId) {
-        this.isLoading = true;
-        deleteLogRecord({ recordId })
-            .then(() => {
-                this.logs = this.logs.filter(log => log.Id !== recordId);
-                this.isLoading = false;
-            })
-            .catch(error => {
-                this.errorMessage = 'Error deleting log: ' + (error.body?.message || error.message);
-                this.isLoading = false;
+            const data = await getLogsWithErrorFilter({
+                searchTerm: this.searchTerm,
+                startDate: this.startDate,
+                endDate: this.endDate,
+                statusFilter: this.statusFilter,
+                pageSize: this.pageSize,
+                currentPage: this.currentPage
             });
-    }
 
-    handleRowAction(event) {
-        const actionName = event.detail.action.name;
-        const row = event.detail.row;
-
-        switch (actionName) {
-            case 'view':
-                this[NavigationMixin.Navigate]({
-                    type: 'standard__recordPage',
-                    attributes: {
-                        recordId: row.Id,
-                        actionName: 'view'
-                    }
-                });
-                break;
-
-            case 'delete':
-                this.deleteLog(row.Id);
-                break;
+            if (data && data.logs) {
+                this.logs = data.logs;
+                this.totalRecords = data.totalRecords;
+                this.noLogsFound = this.logs.length === 0;
+            } else {
+                this.logs = [];
+                this.totalRecords = 0;
+                this.noLogsFound = true;
+            }
+        } catch (error) {
+            this.errorMessage = 'Failed to load execution logs.';
+            console.error(error);
+        } finally {
+            this.isLoading = false;
         }
     }
 
-    get noLogsFound() {
-        return this.logs.length === 0 && !this.isLoading;
+    // Load More Execution Logs (Pagination)
+    loadMoreLogs() {
+        if (this.logs.length < this.totalRecords) {
+            this.currentPage++;
+            this.loadExecutionLogs();
+        }
+    }
+
+    // Fetch Error Logs
+    async loadErrorLogs() {
+        this.isLoading = true;
+        this.errorMessage = '';
+        this.showNoErrors = false;
+        try {
+            const data = await getErrorLogs();
+            this.errors = data || [];
+            this.showNoErrors = this.errors.length === 0;
+        } catch (error) {
+            this.errorMessage = 'Failed to load error logs.';
+            console.error(error);
+        } finally {
+            this.isLoading = false;
+        }
     }
 }

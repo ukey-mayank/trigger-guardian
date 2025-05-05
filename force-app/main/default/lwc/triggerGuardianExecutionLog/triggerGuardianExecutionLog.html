@@ -1,92 +1,123 @@
 <template>
-    <div class="search-container slds-p-bottom_small">
-        <div class="slds-grid slds-wrap slds-gutters">
-            
-            <!-- Search Input -->
-            <div class="slds-col slds-size_1-of-5">
-                <lightning-input
-                    type="search"
-                    label="Search Logs"
-                    placeholder="Search by keyword"
-                    value={searchTerm}
-                    onchange={handleInputChange}
-                    onkeydown={handleSearchKeydown}>
-                </lightning-input>
+    <lightning-tabset>
+        <!-- Execution Logs Tab -->
+        <lightning-tab label="Execution Logs">
+            <div class="search-container slds-p-bottom_small">
+                <div class="slds-grid slds-wrap slds-gutters">
+                    
+                    <!-- Search Input -->
+                    <div class="slds-col slds-size_1-of-5">
+                        <lightning-input
+                            type="search"
+                            label="Search Logs"
+                            placeholder="Search by keyword"
+                            value={searchTerm}
+                            onchange={handleInputChange}
+                            onkeydown={handleSearchKeydown}>
+                        </lightning-input>
+                    </div>
+        
+                    <!-- Start Date -->
+                    <div class="slds-col slds-size_1-of-6">
+                        <lightning-input
+                            type="date"
+                            label="Start Date"
+                            value={startDate}
+                            onchange={handleDateChange}
+                            data-id="startDate">
+                        </lightning-input>
+                    </div>
+        
+                    <!-- End Date -->
+                    <div class="slds-col slds-size_1-of-6">
+                        <lightning-input
+                            type="date"
+                            label="End Date"
+                            value={endDate}
+                            onchange={handleDateChange}
+                            data-id="endDate">
+                        </lightning-input>
+                    </div>
+        
+                    <!-- Status Dropdown -->
+                    <div class="slds-col slds-size_1-of-6">
+                        <lightning-combobox
+                            label="Execution Status"
+                            value={statusFilter}
+                            options={statusOptions}
+                            onchange={handleStatusChange}>
+                        </lightning-combobox>
+                    </div>
+        
+                    <!-- Apply Filters Button -->
+                    <div class="slds-col slds-size_1-of-6 slds-align-bottom">
+                        <lightning-button
+                            label="Apply Filters"
+                            variant="brand"
+                            onclick={applyFilters}>
+                        </lightning-button>
+                    </div>
+                </div>
             </div>
     
-            <!-- Start Date -->
-            <div class="slds-col slds-size_1-of-6">
-                <lightning-input
-                    type="date"
-                    label="Start Date"
-                    value={startDate}
-                    onchange={handleDateChange}
-                    data-id="startDate">
-                </lightning-input>
-            </div>
+            <!-- Loading Spinner for Execution Logs -->
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading Execution Logs..." size="small"></lightning-spinner>
+            </template>
     
-            <!-- End Date -->
-            <div class="slds-col slds-size_1-of-6">
-                <lightning-input
-                    type="date"
-                    label="End Date"
-                    value={endDate}
-                    onchange={handleDateChange}
-                    data-id="endDate">
-                </lightning-input>
-            </div>
-    
-            <!-- Status Dropdown -->
-            <div class="slds-col slds-size_1-of-6">
-                <lightning-combobox
-                    label="Execution Status"
-                    value={statusFilter}
-                    options={statusOptions}
-                    onchange={handleStatusChange}>
-                </lightning-combobox>
-            </div>
-    
-            <!-- Apply Filters Button -->
-            <div class="slds-col slds-size_1-of-6 slds-align-bottom">
-                    <lightning-button
-                        label="Apply Filters"
-                        variant="brand"
-                        onclick={applyFilters}>
+            <!-- Execution Logs Display -->
+            <template if:true={logs.length}>
+                <lightning-datatable
+                    key-field="Id"
+                    data={logs}
+                    columns={columns}
+                    onrowaction={handleRowAction}
+                    hide-checkbox-column
+                    show-row-number-column>
+                </lightning-datatable>
+
+                <!-- Load More Button -->
+                <div class="slds-m-top_medium">
+                    <lightning-button label="Load More" onclick={loadMoreLogs} variant="brand">
                     </lightning-button>
-            </div>
-        </div>
-    </div>    
+                </div>
+            </template>
 
-    <!-- Loading Spinner -->
-    <template if:true={isLoading}>
-        <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
-    </template>
+            <!-- Empty State for Execution Logs -->
+            <template if:true={noLogsFound}>
+                <div class="slds-text-color_weak">No logs found</div>
+            </template>
 
-    <!-- Logs Display -->
-    <template if:true={logs.length}>
-        <lightning-datatable
-            key-field="Id"
-            data={logs}
-            columns={columns}
-            onrowaction={handleRowAction}
-            hide-checkbox-column
-            show-row-number-column>
-        </lightning-datatable>
+            <!-- Error State for Execution Logs -->
+            <template if:true={errorMessage}>
+                <div class="slds-text-color_error">{errorMessage}</div>
+            </template>
+        </lightning-tab>
 
-        <!-- Load More Button -->
-        <div class="slds-m-top_medium">
-            <lightning-button label="Load More" onclick={loadMoreLogs} variant="brand">
-            </lightning-button>
-        </div>
-    </template>
+        <!-- Error Logs Tab -->
+        <lightning-tab label="Error Logs">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading Errors..." size="small"></lightning-spinner>
+            </template>
 
-    <!-- Empty State Message -->
-    <template if:true={noLogsFound}>
-        <div class="slds-text-color_weak">No logs found</div>
-    </template>
+            <template if:true={errors.length}>
+                <template for:each={errors} for:item="err">
+                    <div key={err.Id} class="slds-box slds-m-around_small slds-theme_alert-texture">
+                        <p><strong>Object:</strong> {err.Object_Name__c}</p>
+                        <p><strong>Error:</strong> {err.Error_Message__c}</p>
+                    </div>
+                </template>
+            </template>
 
-    <!-- Error State -->
-    <template if:true={errorMessage}>
-        <div class="slds-text-color_error">{errorMessage}</div>
-    </template>
+            <!-- Empty State for Error Logs -->
+            <template if:true={showNoErrors}>
+                <div class="slds-text-color_weak slds-m-around_medium">No error logs found.</div>
+            </template>
+
+            <!-- Error State for Error Logs -->
+            <template if:true={errorMessage}>
+                <div class="slds-text-color_error slds-m-around_medium">{errorMessage}</div>
+            </template>
+        </lightning-tab>
+    </lightning-tabset>
 </template>
