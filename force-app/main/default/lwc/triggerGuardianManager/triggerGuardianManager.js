@@ -4,7 +4,7 @@ import updateTriggerStatus from '@salesforce/apex/TG_AdminController.updateTrigg
 import updateTriggerOrder from '@salesforce/apex/TG_AdminController.updateTriggerOrder';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
-export default class TriggerGuardianAdminPanel extends LightningElement {
+export default class TriggerGuardianManager extends LightningElement {
     @track settings = [];
     @track isLoading = false;
     @track isSaving = false;
@@ -20,7 +20,7 @@ export default class TriggerGuardianAdminPanel extends LightningElement {
     async fetchSettings() {
         this.isLoading = true;
         try {
-            const data = await getTriggerSettings();
+            const data = await getTriggerSettings({ pageSize: 100, pageNumber: 1 });
             this.settings = data.map(order => ({
                 ...order,
                 updatedOrder: order.Trigger_Order__c
@@ -47,20 +47,12 @@ export default class TriggerGuardianAdminPanel extends LightningElement {
 
         updateTriggerStatus({ recordId: id, isEnabled: newValue })
             .then(() => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Success',
-                    message: 'Trigger status updated.',
-                    variant: 'success'
-                }));
+                this.showToast('Success', 'Trigger status updated.', 'success');
             })
             .catch(error => {
                 this.settings[settingIndex].Is_Enabled__c = originalValue;
                 console.error(error);
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: 'Failed to update trigger status.',
-                    variant: 'error'
-                }));
+                this.showToast('Error', 'Failed to update trigger status.', 'error');
             });
     }
 
@@ -88,20 +80,12 @@ export default class TriggerGuardianAdminPanel extends LightningElement {
 
         updateTriggerOrder({ updatedOrders: updates })
             .then(() => {
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Success',
-                    message: 'Trigger order updated successfully.',
-                    variant: 'success'
-                }));
+                this.showToast('Success', 'Trigger order updated successfully.', 'success');
                 this.originalOrders = JSON.parse(JSON.stringify(this.settings));
             })
             .catch(error => {
                 console.error('Failed to update trigger order', error);
-                this.dispatchEvent(new ShowToastEvent({
-                    title: 'Error',
-                    message: 'Failed to update trigger orders',
-                    variant: 'error'
-                }));
+                this.showToast('Error', 'Failed to update trigger orders', 'error');
             })
             .finally(() => {
                 this.isSaving = false;
@@ -136,5 +120,13 @@ export default class TriggerGuardianAdminPanel extends LightningElement {
 
     handleDragEnd() {
         this.draggedItemId = null;
+    }
+
+    showToast(title, message, variant) {
+        this.dispatchEvent(new ShowToastEvent({
+            title,
+            message,
+            variant
+        }));
     }
 }

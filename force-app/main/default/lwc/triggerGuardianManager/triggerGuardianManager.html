@@ -1,5 +1,4 @@
 <template>
-    <lightning-card title="Trigger Guardian Admin Panel">
         <template if:true={isLoading}>
             <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
         </template>
@@ -56,5 +55,4 @@
         <template if:true={errorMessage}>
             <div class="slds-text-color_error slds-m-around_medium">{errorMessage}</div>
         </template>
-    </lightning-card>
 </template>

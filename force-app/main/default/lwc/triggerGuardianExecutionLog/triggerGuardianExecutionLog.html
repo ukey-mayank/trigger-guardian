@@ -1,7 +1,7 @@
 <template>
-    <lightning-tabset>
+    <lightning-tabset variant="scoped">
         <!-- Execution Logs Tab -->
-        <lightning-tab label="Execution Logs">
+        <lightning-tab label="Execution Logs" icon-name="utility:custom_apps">
             <div class="search-container slds-p-bottom_small">
                 <div class="slds-grid slds-wrap slds-gutters">
                     
@@ -78,8 +78,9 @@
 
                 <!-- Load More Button -->
                 <div class="slds-m-top_medium">
-                    <lightning-button label="Load More" onclick={loadMoreLogs} variant="brand">
-                    </lightning-button>
+                    <template if:true={hasMoreLogs}>
+                        <lightning-button label="Load More" onclick={loadMoreLogs} variant="brand"></lightning-button>
+                    </template>
                 </div>
             </template>
 
@@ -95,7 +96,7 @@
         </lightning-tab>
 
         <!-- Error Logs Tab -->
-        <lightning-tab label="Error Logs">
+        <lightning-tab label="Error Logs" icon-name="utility:error">
             <template if:true={isLoading}>
                 <lightning-spinner alternative-text="Loading Errors..." size="small"></lightning-spinner>
             </template>

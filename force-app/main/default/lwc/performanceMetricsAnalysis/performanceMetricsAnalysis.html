@@ -1,0 +1,51 @@
+<template>
+    <div class="config-history-container">
+        <h2 class="header">Configuration History and Audit Logs</h2>
+        <div class="filters">
+            <div class="filter-item">
+                <label>Start Date</label>
+                <input type="date" value={startDate} onchange={handleStartDateChange} />
+            </div>
+            <div class="filter-item">
+                <label>End Date</label>
+                <input type="date" value={endDate} onchange={handleEndDateChange} />
+            </div>
+            <div class="filter-item">
+                <label>Filter by User</label>
+                <select onchange={handleUserChange} value={selectedUser}>
+                    <option value="">Select a user</option>
+                    <template for:each={userOptions} for:item="user">
+                        <option key={user.value} value={user.value}>{user.label}</option>
+                    </template>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Filter by Trigger</label>
+                <select onchange={handleTriggerChange} value={selectedTrigger}>
+                    <option value="">Select a trigger</option>
+                    <template for:each={triggerOptions} for:item="trigger">
+                        <option key={trigger.value} value={trigger.value}>{trigger.label}</option>
+                    </template>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <lightning-datatable
+                data={auditLogs}
+                columns={columns}
+                key-field="Id"
+                hide-checkbox-column
+                is-loading={loading}
+                no-data-label="No data available"
+            ></lightning-datatable>
+        </div>
+    </div>
+
+    <template if:true={loading}>
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+        </div>
+    </template>
+</template>

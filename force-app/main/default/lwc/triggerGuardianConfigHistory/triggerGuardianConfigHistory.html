@@ -1,0 +1,76 @@
+<template>
+    <div class="config-history-container">
+        <h2 class="header">Configuration History and Audit Logs</h2>
+        <div class="filters">
+            <div class="filter-item">
+                <label>Start Date</label>
+                <input type="date" value={startDate} onchange={handleStartDateChange} />
+            </div>
+            <div class="filter-item">
+                <label>End Date</label>
+                <input type="date" value={endDate} onchange={handleEndDateChange} />
+            </div>
+            <div class="filter-item">
+                <label>Filter by User</label>
+                <select onchange={handleUserChange} value={selectedUser}>
+                    <option value="">Select a user</option>
+                    <template for:each={userOptions} for:item="user">
+                        <option key={user.value} value={user.value}>{user.label}</option>
+                    </template>
+                </select>
+            </div>
+            <div class="filter-item">
+                <label>Filter by Trigger</label>
+                <select onchange={handleTriggerChange} value={selectedTrigger}>
+                    <option value="">Select a trigger</option>
+                    <template for:each={triggerOptions} for:item="trigger">
+                        <option key={trigger.value} value={trigger.value}>{trigger.label}</option>
+                    </template>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="slds-table slds-table_bordered slds-table_fixed-layout">
+                <thead>
+                    <tr>
+                        <th>Trigger Name</th>
+                        <th>Field Changed</th>
+                        <th>Old Value</th>
+                        <th>New Value</th>
+                        <th>Change Type</th>
+                        <th>Changed By</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template if:true={auditLogs}>
+                        <template for:each={auditLogs} for:item="log">
+                            <tr key={log.Id}>
+                                <td>{log.Trigger_Name__c}</td>
+                                <td>{log.Field_Changed__c}</td>
+                                <td>{log.Old_Value__c}</td>
+                                <td>{log.New_Value__c}</td>
+                                <td>{log.Change_Type__c}</td>
+                                <td>{log.Changed_By__c}</td>
+                                <td>{log.Changed_Timestamp__c}</td>
+                            </tr>
+                        </template>
+                    </template>
+                    <template if:false={auditLogs}>
+                        <tr>
+                            <td colspan="7" class="no-data">No data available</td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <template if:true={loading}>
+        <div class="loading-overlay">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+        </div>
+    </template>
+</template>

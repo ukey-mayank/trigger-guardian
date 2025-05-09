@@ -45,9 +45,19 @@ export default class TriggerGuardianLogsPanel extends LightningElement {
         this.loadErrorLogs();
     }
 
-    // Handle Changes for Filters
+    // Handle Changes for Filters | With debouncing
+    timeout;
     handleInputChange(event) {
+        clearTimeout(this.timeout);
         this.searchTerm = event.target.value;
+        this.timeout = setTimeout(() => {
+            this.currentPage = 1;
+            this.loadExecutionLogs();
+        }, 400); // 400ms debounce
+    }
+
+    get hasMoreLogs() {
+        return this.logs.length < this.totalRecords;
     }
 
     handleDateChange(event) {
@@ -66,6 +76,7 @@ export default class TriggerGuardianLogsPanel extends LightningElement {
     // Apply Filters to Execution Logs
     applyFilters() {
         this.currentPage = 1;
+        this.logs = [];
         this.loadExecutionLogs();
     }
 
@@ -74,6 +85,7 @@ export default class TriggerGuardianLogsPanel extends LightningElement {
         this.isLoading = true;
         this.errorMessage = '';
         this.noLogsFound = false;
+    
         try {
             const data = await getLogsWithErrorFilter({
                 searchTerm: this.searchTerm,
@@ -81,11 +93,18 @@ export default class TriggerGuardianLogsPanel extends LightningElement {
                 endDate: this.endDate,
                 statusFilter: this.statusFilter,
                 pageSize: this.pageSize,
-                currentPage: this.currentPage
+                pageNumber: this.currentPage
             });
-
+    
             if (data && data.logs) {
-                this.logs = data.logs;
+                if (this.currentPage === 1) {
+                    // First page, reset logs
+                    this.logs = data.logs;
+                } else {
+                    // Append logs for pagination
+                    this.logs = [...this.logs, ...data.logs];
+                }
+    
                 this.totalRecords = data.totalRecords;
                 this.noLogsFound = this.logs.length === 0;
             } else {
@@ -99,7 +118,7 @@ export default class TriggerGuardianLogsPanel extends LightningElement {
         } finally {
             this.isLoading = false;
         }
-    }
+    }    
 
     // Load More Execution Logs (Pagination)
     loadMoreLogs() {
@@ -125,4 +144,43 @@ export default class TriggerGuardianLogsPanel extends LightningElement {
             this.isLoading = false;
         }
     }
+
+    //rowActions | start
+    get columns() {
+        return [
+            { label: 'Log ID', fieldName: 'Id' },
+            { label: 'Object Name', fieldName: 'Object_Name__c' },
+            { label: 'Execution Status', fieldName: 'Execution_Status__c' },
+            { label: 'Error Message', fieldName: 'Error_Message__c' },
+            { label: 'Timestamp', fieldName: 'CreatedDate' },
+            {
+                type: 'action',
+                typeAttributes: {
+                    rowActions: [
+                        { label: 'View Details', name: 'view_details' },
+                        { label: 'Archive Log', name: 'archive' },
+                        { label: 'Delete Log', name: 'delete' }
+                    ],
+                    menuAlignment: 'auto'
+                }
+            }
+        ];
+    }
+    handleRowAction(event) {
+        const actionName = event.detail.action.name;
+        const row = event.detail.row;
+    
+        switch (actionName) {
+            case 'view_details':
+                this.viewLogDetails(row);
+                break;
+            case 'archive':
+                this.archiveLog(row);
+                break;
+            case 'delete':
+                this.deleteLog(row);
+                break;
+        }
+    }
+    //rowActions | end
 }

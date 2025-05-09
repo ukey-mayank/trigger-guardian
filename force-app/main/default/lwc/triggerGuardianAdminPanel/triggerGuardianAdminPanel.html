@@ -1,23 +1,24 @@
 <template>
-    <lightning-card title="Trigger Guardian Admin Panel" icon-name="utility:settings">
-        <div class="slds-p-around_medium">
-            <lightning-tabset active-tab-value={activeTabValue} onactive={handleTabChange}>
-                <lightning-tab label="Logs" value="logs" title="View Trigger Execution Logs">
-                    <c-trigger-guardian-execution-log></c-trigger-guardian-execution-log>
-                </lightning-tab>
-
-                <!--<lightning-tab label="Errors" value="errors" title="View Trigger Errors">
-                    <c-trigger-guardian-error-panel></c-trigger-guardian-error-panel>
-                </lightning-tab>-->
-
-                <lightning-tab label="Toggle & Execution" value="settings" title="Manage Settings">
-                    <c-trigger-guardian-manager></c-trigger-guardian-manager>
-                </lightning-tab>
-
-                <lightning-tab label="Manual Test" value="test" title="Run Manual Trigger Test">
-                    <c-manual-trigger-test></c-manual-trigger-test>
-                </lightning-tab>
-            </lightning-tabset>
+    <div class="admin-panel-container">
+        <div class="admin-panel-header">
+            <h2>Trigger Guardian Admin Panel</h2>
         </div>
-    </lightning-card>
+        <lightning-tabset active-tab-value={activeTabValue} onactive={handleTabChange} class="tab-container">
+            <lightning-tab label="Logs" value="logs" title="View Trigger Execution Logs">
+                <div class="tab-content compact">
+                    <c-trigger-guardian-execution-log></c-trigger-guardian-execution-log>
+                </div>
+            </lightning-tab>
+            <lightning-tab label="Toggle & Execution" value="settings" title="Manage Settings">
+                <div class="tab-content compact">
+                    <c-trigger-guardian-manager></c-trigger-guardian-manager>
+                </div>
+            </lightning-tab>
+            <lightning-tab label="Manual Test" value="test" title="Run Manual Trigger Test">
+                <div class="tab-content compact">
+                    <c-manual-trigger-test></c-manual-trigger-test>
+                </div>
+            </lightning-tab>
+        </lightning-tabset>
+    </div>
 </template>

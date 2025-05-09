@@ -15,77 +15,45 @@ public with sharing class TG_AdminController {
 
     @AuraEnabled(cacheable=true)
     public static List<Trigger_Config_Runtime__c> getTriggerSettings(Integer pageSize, Integer pageNumber) {
-        Integer offset = (pageNumber - 1) * pageSize;
-        // Validate CRUD permissions for the user
-        if (!Schema.sObjectType.Trigger_Config_Runtime__c.isAccessible()) {
-            throwException('You do not have permission to access Trigger Config records.');
+        try{
+            return [
+                SELECT Id, Object_Name__c, Is_Enabled__c, Trigger_Order__c
+                FROM Trigger_Config_Runtime__c
+                ORDER BY Trigger_Order__c
+                LIMIT :pageSize OFFSET :((pageNumber - 1) * pageSize)
+            ];
         }
-
-        return [
-            SELECT Id, Object_Name__c, Is_Enabled__c, Trigger_Order__c
-            FROM Trigger_Config_Runtime__c
-            WITH SECURITY_ENFORCED
-            ORDER BY Trigger_Order__c
-            LIMIT :pageSize OFFSET :offset
-        ];
+        catch (Exception ex) {
+            System.debug('Error in getTriggerSettings: ' + ex.getMessage());
+            throw new AuraHandledException('Failed to fetch trigger settings.');
+        }
     }
 
     @AuraEnabled
     public static void updateTriggerStatus(Id recordId, Boolean isEnabled) {
         try {
-            if (recordId == null) {
-                throwException('Invalid input: recordId is required.');
-            }
-
-            // Validate CRUD permissions for the user
-            if (!Schema.sObjectType.Trigger_Config_Runtime__c.isAccessible() || !Schema.sObjectType.Trigger_Config_Runtime__c.isUpdateable()) {
-                throwException('You do not have permission to access or update Trigger Config records.');
-            }
-            
-            Trigger_Config_Runtime__c config = [
-                SELECT Id, Is_Enabled__c 
-                FROM Trigger_Config_Runtime__c 
+            Trigger_Config_Runtime__c setting = [
+                SELECT Id, Is_Enabled__c
+                FROM Trigger_Config_Runtime__c
                 WHERE Id = :recordId
-                WITH SECURITY_ENFORCED
                 LIMIT 1
             ];
-            config.Is_Enabled__c = isEnabled;
-            update config;
-        } catch (DmlException e) {
-            System.debug(LoggingLevel.ERROR + e.getMessage());
-            throwException('Failed to update trigger status.');
+            setting.Is_Enabled__c = isEnabled;
+            update setting;
+        } catch (Exception ex) {
+            System.debug('Error in updateTriggerStatus: ' + ex.getMessage());
+            throw new AuraHandledException('Failed to update trigger status.');
         }
     }
 
     @AuraEnabled
     public static void updateTriggerOrder(List<Trigger_Config_Runtime__c> updatedOrders) {
         try {
-            if (updatedOrders == null || updatedOrders.isEmpty()) {
-                throwException('Invalid input: updatedOrders are required.');
-            }
-
-            // Validate CRUD permissions for the user
-            if (!Schema.sObjectType.Trigger_Config_Runtime__c.isAccessible() || !Schema.sObjectType.Trigger_Config_Runtime__c.isUpdateable()) {
-                throwException('You do not have permission to access or update Trigger Config records.');
-            }
-
-            List<Trigger_Config_Runtime__c> recordsToUpdate = new List<Trigger_Config_Runtime__c>();
-            for (Trigger_Config_Runtime__c orders : updatedOrders) {
-                if (orders.Id == null || orders.Trigger_Order__c == null) {
-                    continue;
-                }
-                recordsToUpdate.add(new Trigger_Config_Runtime__c(
-                    Id = orders.Id,
-                    Trigger_Order__c = orders.Trigger_Order__c
-                ));
-            }
-
-            if (!recordsToUpdate.isEmpty()) {
-                update recordsToUpdate;
-            }
-        } catch (DmlException e) {
-            System.debug(LoggingLevel.ERROR + e.getMessage());
-            throwException('Failed to update trigger order.');
+            if (updatedOrders.isEmpty()) return;
+            update updatedOrders;
+        } catch (Exception ex) {
+            System.debug('Error in updateTriggerOrder: ' + ex.getMessage());
+            throw new AuraHandledException('Failed to update trigger orders.');
         }
     }
 
@@ -101,75 +69,83 @@ public with sharing class TG_AdminController {
     }
 
     @AuraEnabled(cacheable=true)
-    public static Map<String, Object> getLogsWithErrorFilter(String searchTerm, String startDate, String endDate, String statusFilter, Integer pageSize, Integer pageNumber) {
+    public static Map<String, Object> getLogsWithErrorFilter(
+        String searchTerm,
+        String startDate,
+        String endDate,
+        String statusFilter,
+        Integer pageSize,
+        Integer pageNumber
+    ) {
         List<Trigger_Execution_Log__c> logs = new List<Trigger_Execution_Log__c>();
         Integer offset = (pageNumber - 1) * pageSize;
 
         Date startDateObj;
         Date endDateObj;
 
-        // Ensure start date and end date are valid
         if (String.isNotBlank(startDate)) {
             try {
-                startDateObj = Date.valueOf(startDate); // Converts 'YYYY-MM-DD' string to Date
+                startDateObj = Date.valueOf(startDate);
             } catch (Exception e) {
-                System.debug(LoggingLevel.ERROR, 'Invalid start date format: ' + startDate);
                 throw new AuraHandledException('Invalid start date format.');
             }
         }
 
         if (String.isNotBlank(endDate)) {
             try {
-                endDateObj = Date.valueOf(endDate); // Converts 'YYYY-MM-DD' string to Date
+                endDateObj = Date.valueOf(endDate);
             } catch (Exception e) {
-                System.debug(LoggingLevel.ERROR, 'Invalid end date format: ' + endDate);
                 throw new AuraHandledException('Invalid end date format.');
             }
         }
 
-        String query = 'SELECT Id, Object_Name__c, Error_Message__c, Execution_Status__c, CreatedDate ' +
-                       'FROM Trigger_Execution_Log__c WHERE Name != null';
+        Datetime startDt = (startDateObj != null) ? Datetime.newInstance(startDateObj, Time.newInstance(0, 0, 0, 0)) : null;
+        Datetime endDt = (endDateObj != null) ? Datetime.newInstance(endDateObj.addDays(1), Time.newInstance(0, 0, 0, 0)) : null;
 
-        // Apply the search key filter if provided
+        // Build base query
+        String baseQuery = 'SELECT Id, Object_Name__c, Error_Message__c, Execution_Status__c, CreatedDate FROM Trigger_Execution_Log__c WHERE Name != null';
+        List<String> conditions = new List<String>();
+
         if (String.isNotBlank(searchTerm)) {
-            query += ' AND Name LIKE \'%' + String.escapeSingleQuotes(searchTerm) + '%\'';
+            String escapedSearch = String.escapeSingleQuotes(searchTerm);
+            conditions.add('(Object_Name__c LIKE \'%' + escapedSearch + '%\' OR Error_Message__c LIKE \'%' + escapedSearch + '%\')');
         }
 
-        // Apply the start date filter if provided
-        if (startDateObj != null) {
-            query += ' AND CreatedDate >= :startDateObj';
+        if (startDt != null) {
+            conditions.add('CreatedDate >= ' + formatForSOQL(startDt));
         }
 
-        // Apply the end date filter if provided
-        if (endDateObj != null) {
-            query += ' AND CreatedDate <= :endDateObj';
+        if (endDt != null) {
+            conditions.add('CreatedDate <= ' + formatForSOQL(endDt));
         }
 
-        // Apply the execution status filter if provided
         if (String.isNotBlank(statusFilter)) {
-            String statusFilterLower = statusFilter.toLowerCase();
-            query += ' AND LOWER(Execution_Status__c) = :statusFilterLower';
+            String escapedStatus = String.escapeSingleQuotes(statusFilter);
+            conditions.add('Execution_Status__c = \'' + escapedStatus + '\'');
         }
 
-        // Debug the query for further inspection
-        System.debug(LoggingLevel.DEBUG, 'Final query: ' + query);
-
-        // Execute the query
-        try {
-            logs = Database.query(query);
-        } catch (Exception e) {
-            System.debug(LoggingLevel.ERROR, 'Error executing query: ' + e.getMessage());
-            throw new AuraHandledException('Error fetching logs: ' + e.getMessage());
+        if (!conditions.isEmpty()) {
+            baseQuery += ' AND ' + String.join(conditions, ' AND ');
         }
 
-        // Count total records for pagination
-        Integer totalRecords = [SELECT COUNT() FROM Trigger_Execution_Log__c WHERE Name != null];
+        String fullQuery = baseQuery + ' ORDER BY CreatedDate DESC LIMIT ' + pageSize + ' OFFSET ' + offset;
+        logs = Database.query(fullQuery);
 
-        // Return results and total records for pagination
+        String countQuery = 'SELECT COUNT() FROM Trigger_Execution_Log__c WHERE Name != null';
+        if (!conditions.isEmpty()) {
+            countQuery += ' AND ' + String.join(conditions, ' AND ');
+        }
+
+        Integer totalRecords = Database.countQuery(countQuery);
+
         return new Map<String, Object>{
             'logs' => logs,
             'totalRecords' => totalRecords
         };
+    }
+
+    private static String formatForSOQL(Datetime dt) {
+        return '\'' + dt.format('yyyy-MM-dd\'T\'HH:mm:ss\'Z\'') + '\'';
     }
 
     public class LogFilter {
@@ -180,7 +156,13 @@ public with sharing class TG_AdminController {
     }
 
     @AuraEnabled(cacheable=true)
-    public static List<Trigger_Execution_Log__c> getErrorLogs(Integer pageSize, Integer pageNumber) {
+    public static List<Trigger_Execution_Log__c> getErrorLogs(
+        Integer pageSize, 
+        Integer pageNumber, 
+        Date startDate, 
+        Date endDate, 
+        String executionStatus) {
+
         Integer offset = (pageNumber - 1) * pageSize;
 
         // Validate CRUD permissions for the user
@@ -188,18 +170,29 @@ public with sharing class TG_AdminController {
             throwException('You do not have permission to access Trigger Execution Logs.');
         }
 
-        List<Trigger_Execution_Log__c> logs = [
-            SELECT Id, Object_Name__c, Error_Message__c, CreatedDate
-            FROM Trigger_Execution_Log__c
-            WHERE Execution_Status__c = 'Error'
-            WITH SECURITY_ENFORCED
-            ORDER BY CreatedDate DESC
-            LIMIT :pageSize OFFSET :offset
-        ];
+        // Build dynamic query to include date range and execution status filtering
+        String query = 'SELECT Id, Object_Name__c, Error_Message__c, CreatedDate FROM Trigger_Execution_Log__c WHERE 1 = 1';
+        
+        if (String.isNotEmpty(executionStatus)) {
+            query += ' AND Execution_Status__c = :executionStatus';
+        }
+        
+        if (startDate != null) {
+            query += ' AND CreatedDate >= :startDate';
+        }
 
-        if (logs.isEmpty()){
+        if (endDate != null) {
+            query += ' AND CreatedDate <= :endDate';
+        }
+
+        query += ' ORDER BY CreatedDate DESC LIMIT :pageSize OFFSET :offset';
+        
+        List<Trigger_Execution_Log__c> logs = Database.query(query);
+
+        if (logs.isEmpty()) {
             return new List<Trigger_Execution_Log__c>(); // Avoid null return
         }
+        
         return logs;
     }
 
