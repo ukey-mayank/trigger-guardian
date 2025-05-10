@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
-    <fullName>Event_Type__c</fullName>
+    <fullName>Trigger_Type__c</fullName>
     <externalId>false</externalId>
-    <label>Event Type</label>
+    <label>Trigger Type</label>
     <required>false</required>
     <trackTrending>false</trackTrending>
     <type>Picklist</type>
