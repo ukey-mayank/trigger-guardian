@@ -1,0 +1,30 @@
+<template>
+    <lightning-card title="Custom Alerts and Notifications" class="slds-p-around_medium slds-m-bottom_medium">
+        <div class="slds-m-bottom_medium">
+            <label class="slds-form-element__label">Error Pattern</label>
+            <lightning-input type="text" value={errorPattern} onchange={handleErrorPatternChange}></lightning-input>
+        </div>
+        <div class="slds-m-bottom_medium">
+            <label class="slds-form-element__label">Threshold (Error Count)</label>
+            <lightning-input type="number" value={threshold} onchange={handleThresholdChange}></lightning-input>
+        </div>
+        <lightning-button variant="brand" label="Save Alert" onclick={handleSaveAlert} class="slds-m-bottom_medium" disabled={isLoading}></lightning-button>
+        <template if:true={isLoading}>
+            <div class="slds-text-align_center slds-m-bottom_medium">Saving...</div>
+        </template>
+        <div class="slds-box slds-theme_default slds-scrollable_y" style="max-height: 300px;">
+            <template if:true={alerts}>
+                <template for:each={alerts} for:item="alert">
+                    <div key={alert.id} class="slds-p-around_small slds-border_bottom">
+                        <p><strong>Pattern:</strong> {alert.pattern}</p>
+                        <p><strong>Threshold:</strong> {alert.threshold}</p>
+                        <lightning-button variant="destructive-text" label="Remove" onclick={handleRemoveAlert} data-id={alert.id}></lightning-button>
+                    </div>
+                </template>
+            </template>
+            <template if:false={alerts}>
+                <p class="slds-text-color_weak slds-p-around_small">No alerts configured yet.</p>
+            </template>
+        </div>
+    </lightning-card>
+</template>

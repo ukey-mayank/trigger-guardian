@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Event_Type__c</fullName>
+    <label>Event Type</label>
+    <type>Picklist</type>
+    <valueSet>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Before Insert</fullName>
+                <default>true</default>
+            </value>
+            <value>
+                <fullName>Before Update</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Before Delete</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>After Insert</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>After Update</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>After Delete</fullName>
+                <default>false</default>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
